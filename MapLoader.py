@@ -39,25 +39,26 @@ writeFileName='./testWrite.csv'
 
 
 for laneId in laneDic.keys():
-    print('---------- ', laneId)
     oneLane=[]
     # 一条车道线上的所有线段
     laneFragList = laneDic[laneId]
 #    print(len(laneFragList), len(laneFragList[0]), laneFragList[0])
     segCount = 0
+    dashCount=0
     for frag in laneFragList:
         # 存储一个线段上的经纬度点
         lon = []
         lat = []
-
         for ll in frag:
             lonlat = ll.split()
             lon.append(float(lonlat[0]))
             lat.append(float(lonlat[1]))
             oneLane.append(float(lonlat[0]))
             oneLane.append(float(lonlat[1]))
-#            if '3' == laneId and 16 == segCount:
-#                ax.scatter(float(lonlat[0]), float(lonlat[1]), c='b', marker='o', s=3, linewidths=10)
+            dashCount=dashCount+1
+            if '1' == laneId and dashCount == 10:
+                ax.scatter(float(lonlat[0]), float(lonlat[1]), c='b', marker='o', s=3, linewidths=10)
+                print(lonlat[0], ' --- ', lonlat[1])
         # 绘制到界面上
         ax.text(lon[0], lat[0], laneId)
         ax.plot(lon, lat)

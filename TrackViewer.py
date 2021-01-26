@@ -20,7 +20,9 @@ class CarList:
                 car = Car(cid)
                 car.append_ll(lon, lat)
                 self.carDic[cid] = car
-                self.plot.addItem(car.scatter)
+                #self.plot.addItem(car.scatter)
+                self.plot.addItem(car.plot)
+                self.plot.addItem(car.text)
             else:
                 car = self.carDic[cid]
                 car.append_ll(lon, lat)
@@ -29,12 +31,18 @@ class CarList:
         klist = []
         for k in self.carDic:
             if k not in cid_set:
+                self.carDic[k].lost+=1
+            else:
+                self.carDic[k].lost=0
+            # 这辆车更新连续5次没有,删除轨迹
+            if self.carDic[k].lost>5:
                 klist.append(k)
 
         for k in klist:
             sc = self.carDic.get(k)
             self.carDic.pop(k)
-            self.plot.removeItem(sc.scatter)
+            self.plot.removeItem(sc.plot)
+            self.plot.removeItem(sc.text)
             print('pop car:{}'.format(k))
 
 
@@ -43,14 +51,36 @@ class Car:
         self.cid = cid
         self.lons = []
         self.lats = []
+        self.lost = 0
         color = random_color()
-        self.scatter = pg.ScatterPlotItem(pen=pg.mkPen(width=1, color=color), symbol='o', size=1)
+        # self.scatter = pg.ScatterPlotItem(pen=pg.mkPen(width=1, color=color), symbol='o', size=1)
+        self.plot = pg.PlotCurveItem(pen=pg.mkPen(width=1, color=color), symbol='o', size=1)
+        self.text = pg.TextItem(cid,color)
 
     def append_ll(self, lon, lat):
         self.lons.append(lon)
         self.lats.append(lat)
-        self.scatter.setData(self.lons, self.lats)
+        self.plot.setData(self.lons,self.lats)
+        self.text.setPos(lon,lat)
+        #self.scatter.setData(self.lons, self.lats)
 
+
+
+class TrackDataLoader:
+    def __init__(self, dataPath):
+        self.lines = []
+        with open(dataPath) as f:
+            content = f.readlines()
+        self.lines = [x.strip() for x in content]
+        self.size = len(self.lines)
+        self.idx = -1
+
+    def next(self):
+        self.idx+=1
+        if self.idx>=self.size:
+            return False, None
+        else:
+            return True, self.lines[self.idx]
 
 def loadMap(path):
     with open(path) as f:
@@ -70,6 +100,7 @@ def loadMap(path):
 
 
 laneDic = loadMap("./ObjectPL4.csv")
+trackData = TrackDataLoader('nanCarTrackData.txt')
 
 
 class Graph:
@@ -85,7 +116,7 @@ class Graph:
         # self.win.nextRow()
         self.curve1 = self.p1.plot()
 
-        qpen = pg.mkPen(width=1, color=pg.mkColor("#ffffff"))
+        qpen = pg.mkPen(width=1, color=pg.mkColor("#6b6b6b"))
 
         for laneId in laneDic.keys():
             # 一条车道线上的所有线段
@@ -101,22 +132,19 @@ class Graph:
                     lanePlot = self.p1.plot()
                     lanePlot.setData(lon, lat, pen=qpen)
 
-        graphUpdateSpeedMs = 35
-        timer = QtCore.QTimer()  # to create a thread that calls a function at intervals
-        timer.timeout.connect(self.update)  # the update function keeps getting called at intervals
+        self.carList = CarList(self.p1)
+        graphUpdateSpeedMs = 10
+        timer = QtCore.QTimer()
+        timer.timeout.connect(self.update)
         timer.start(graphUpdateSpeedMs)
         QtGui.QApplication.instance().exec_()
 
     def update(self):
-        path = 'nanCarTrackData.txt'
-        with open(path) as f:
-            content = f.readlines()
-        content = [x.strip() for x in content]
-        carList = CarList(self.p1)
-        for line in content:
+        have, line = trackData.next()
+        if have:
             items = line.split(',')
             if len(items) < 2:
-                continue
+                return
             fid = items[0]
             print('processing frame {}'.format(fid))
             fcars = []
@@ -126,10 +154,10 @@ class Graph:
                 lon = items[1 + i * 3 + 1]
                 lat = items[1 + i * 3 + 2]
                 fcars.append((cid, float(lon), float(lat)))
-            carList.update(fcars)
-
+            self.carList.update(fcars)
             self.app.processEvents()
 
 
 if __name__ == '__main__':
     g = Graph()
+

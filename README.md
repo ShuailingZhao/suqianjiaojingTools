@@ -3,7 +3,7 @@
 
 #### 显示路的信息
 ```
-python3 MapLoader.py
+python3 DetectCsvLoader.py
 ```
 #### 动态显示路和轨迹信息
 ```

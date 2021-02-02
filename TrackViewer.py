@@ -99,12 +99,13 @@ def loadMap(path):
     return laneDic
 
 
-laneDic = loadMap("./ObjectPL4.csv")
-trackData = TrackDataLoader('nanCarTrackData.txt')
+laneDic = loadMap("./data/ObjectPL4.csv")
+trackData = TrackDataLoader('./data/nanCarTrackData.txt')
 
 
 class Graph:
     def __init__(self, ):
+        self.speInd=-1
         self.frameLon = []
         self.frameLat = []
         self.maxLen = 50  # max number of data points to show on graph
@@ -133,14 +134,15 @@ class Graph:
                     lanePlot.setData(lon, lat, pen=qpen)
 
         self.carList = CarList(self.p1)
-        graphUpdateSpeedMs = 10
-        timer = QtCore.QTimer()
-        timer.timeout.connect(self.update)
-        timer.start(graphUpdateSpeedMs)
+        graphUpdateSpeedMs = 20
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.update)
+        self.timer.start(graphUpdateSpeedMs)
         QtGui.QApplication.instance().exec_()
 
     def update(self):
         have, line = trackData.next()
+        self.speInd+=1
         if have:
             items = line.split(',')
             if len(items) < 2:

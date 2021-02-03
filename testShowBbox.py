@@ -118,7 +118,7 @@ if __name__ == '__main__':
 	for data in carSpecificData:
 		print('--- ', data)
 	
-	showIndex = 4
+	showIndex = 2
 	showData = [i[showIndex] for i in carSpecificData]
 	
 	for showDataInd in range(1, len(showData)):	

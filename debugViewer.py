@@ -44,9 +44,10 @@ class trackLoader:
 				self.recordDisappearTimes(trackDataKey)
 				self.EraseExceedMaxDisappearFrameTrackData(trackDataKey)
 #		self.printTrackData()
-		retData = self.extractSpecificData(carId, 1)
-		return retData
-#		return 	self.trackData
+#		retData = self.extractSpecificData(carId, 1)
+#		return retData
+
+		return 	self.trackData
 		
 	def recordDisappearTimes(self, trackDataKey):
 		for index in range(len(self.trackData[trackDataKey])):
@@ -140,9 +141,9 @@ class Example(QWidget):
 
 	def plotData(self):
 		self.frameIndex+=1
-		showCarId = 1861
+		showCarId = 6
 		data = self.carTrackData.updateData(showCarId)
-		print('======= ', self.frameIndex, ' , ', data)
+#		print('======= ', self.frameIndex, ' , ', data)
 		self.pha += 10
 		self.curve1.setData(range(len(data)) , data)
 		
